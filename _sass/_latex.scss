@@ -1,0 +1,31 @@
+/**
+ * LaTeX
+ *
+ * KaTeX integration overrides. KaTeX's own CSS loads from CDN; this partial
+ * only adjusts what doesn't fit Telar's layout — display math spacing, inline
+ * math sizing, and panel overflow handling.
+ *
+ * @version v1.8.0
+ */
+
+// KaTeX adjustments are component-level chrome, so they sit with the other
+// components. KaTeX's own CDN stylesheet is imported into the third-party
+// layer, below this one, so these declarations win on the properties both set
+// (.katex font-size, .katex-display margin) whatever their specificity.
+@layer telar-components {
+
+// Display math: centred with vertical spacing, scroll for wide equations
+.katex-display {
+  margin: 1.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+// Inline math: slightly smaller than KaTeX default (1.21em)
+// Keep inline with surrounding text to prevent orphaned punctuation
+.katex {
+  font-size: 1.1em;
+  display: inline;
+}
+
+} // end @layer telar-components

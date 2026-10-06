@@ -1,0 +1,124 @@
+"""
+Migration from v0.9.3-beta to v0.9.4-beta.
+
+Bug fix release:
+- Add PyMuPDF dependency to requirements.txt for PDF object support
+
+CI was skipping IIIF tile generation for PDF objects because PyMuPDF
+was not listed in requirements.txt.
+
+No _config.yml changes beyond version bump. No CSV schema changes.
+
+Version: v1.8.0
+"""
+
+from typing import List, Dict
+from .base import BaseMigration
+
+
+class Migration093to094(BaseMigration):
+    """Migration from v0.9.3 to v0.9.4 - PyMuPDF dependency fix."""
+
+    from_version = "0.9.3-beta"
+    to_version = "0.9.4-beta"
+    release_date = "2026-03-18"  # tag v0.9.4-beta
+    _TARGET_TAG = "v0.9.4-beta"  # pin framework fetches to the release tag
+    description = "Add PyMuPDF dependency for PDF object support"
+
+    def check_applicable(self) -> bool:
+        """Check if migration should run."""
+        return True
+
+    def apply(self) -> List[str]:
+        """Apply migration changes."""
+        changes = []
+
+        # Phase 1: Update framework files
+        print("  Phase 1: Updating framework files...")
+        changes.extend(self._update_framework_files())
+
+        # Phase 2: Update version
+        print("  Phase 2: Updating version...")
+        stamped = self.release_date
+        if self._update_config_version("0.9.4-beta", stamped):
+            changes.append(f"Updated _config.yml: version 0.9.4-beta ({stamped})")
+
+        return changes
+
+    def _update_framework_files(self) -> List[str]:
+        """Update framework files from GitHub repository."""
+        changes = []
+
+        framework_files = {
+            # Dependency fix
+            'requirements.txt': 'Add PyMuPDF for PDF IIIF tile generation',
+            # Changelog
+            'CHANGELOG.md': 'Added v0.9.4-beta changelog entry',
+        }
+
+        changes.extend(self._install_files_one_by_one(
+            framework_files, "Updated {path} - {description}"))
+
+        return changes
+
+    def get_manual_steps(self) -> List[Dict[str, str]]:
+        """Return manual steps in user's language."""
+        lang = self._detect_language()
+        if lang == 'es':
+            return self._get_manual_steps_es()
+        else:
+            return self._get_manual_steps_en()
+
+    def _get_manual_steps_en(self) -> List[Dict[str, str]]:
+        """English manual steps for v0.9.4 migration."""
+        return [
+            {
+                'description': '''**If you use GitHub Pages:**
+
+No action needed. The updated requirements.txt will be picked up automatically on the next build. If your site has PDF objects, trigger a rebuild to generate their IIIF tiles: go to your repository's Actions tab, select the "Build and Deploy" workflow, and click **Run workflow**.''',
+                'audience': 'all',
+                'kind': 'note',
+            },
+            {
+                'description': '''**If you work with your site locally:**
+
+Install the new dependency:
+
+`pip install PyMuPDF`
+
+If your site has PDF objects and their IIIF tiles were not previously generated, regenerate them:
+
+`python3 scripts/generate_iiif.py --base-url YOUR_SITE_URL`
+
+(Replace YOUR_SITE_URL with your site's URL, e.g. https://yourusername.github.io/your-repo)''',
+                'audience': 'all',
+                'kind': 'action',
+            },
+        ]
+
+    def _get_manual_steps_es(self) -> List[Dict[str, str]]:
+        """Spanish manual steps for v0.9.4 migration."""
+        return [
+            {
+                'description': '''**Si usas GitHub Pages:**
+
+No se requiere ninguna acción. El archivo requirements.txt actualizado se aplicará automáticamente en la proxima construccion. Si el sitio tiene objetos PDF, inicia una reconstruccion para generar sus teselas IIIF: ve a la pestana Actions del repositorio, selecciona el flujo "Build and Deploy" y haz clic en **Run workflow**.''',
+                'audience': 'all',
+                'kind': 'note',
+            },
+            {
+                'description': '''**Si trabajas con tu sitio localmente:**
+
+Instala la nueva dependencia:
+
+`pip install PyMuPDF`
+
+Si el sitio tiene objetos PDF y sus teselas IIIF no se generaron previamente, regeneralas:
+
+`python3 scripts/generate_iiif.py --base-url URL_DE_TU_SITIO`
+
+(Reemplaza URL_DE_TU_SITIO con la URL del sitio, ej. https://tuusuario.github.io/tu-repositorio)''',
+                'audience': 'all',
+                'kind': 'action',
+            },
+        ]
